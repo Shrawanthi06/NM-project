@@ -1,0 +1,50 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+import nltk
+from textblob import TextBlob
+
+# Download NLTK data (only once)
+nltk.download('punkt')
+
+# 📌 Load Product Reviews Dataset from CSV
+df = pd.read_csv('product_reviews.csv')
+
+# 📌 Splitting data into train and test sets
+X = df['review']
+y = df['sentiment']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# 📌 Text Vectorization
+vectorizer = CountVectorizer()
+X_train_vectors = vectorizer.fit_transform(X_train)
+X_test_vectors = vectorizer.transform(X_test)
+
+# 📌 Model Training — Naive Bayes
+model = MultinomialNB()
+model.fit(X_train_vectors, y_train)
+
+# 📌 Predictions
+y_pred = model.predict(X_test_vectors)
+
+# 📌 Evaluation
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+# 📌 Sentiment prediction using TextBlob (alternative)
+def predict_sentiment(text):
+    analysis = TextBlob(text)
+    if analysis.sentiment.polarity > 0:
+        return 'positive'
+    elif analysis.sentiment.polarity < 0:
+        return 'negative'
+    else:
+        return 'neutral'
+
+# 📌 Test example
+test_review = "The product quality is outstanding."
+print(f"\nTextBlob Sentiment Prediction: {predict_sentiment(test_review)}")
