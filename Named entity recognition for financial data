@@ -1,0 +1,61 @@
+import nltk
+ import random
+ import string
+ from sklearn.feature_extraction.text import TfidfVectorizer
+ from sklearn.metrics.pairwise import cosine_similarity
+ nltk.download('punkt')
+ nltk.download('wordnet')
+ from nltk.stem import WordNetLemmatizer
+ lemmatizer = WordNetLemmatizer()
+ # Sample FAQ-style corpus
+ corpus = {
+    "greeting": [
+        "Hi", "Hello", "Hey", "Good day"
+    ],
+    "goodbye": [
+        "Bye", "See you later", "Goodbye"
+    ],
+    "thanks": [
+        "Thanks", "Thank you", "Much appreciated"
+    ],
+    "hours": [
+        "What are your hours?", "When are you open?"
+    ],
+    "payments": [
+        "Do you accept credit cards?", "Can I pay with PayPal?"
+    ]
+ }
+ responses = {
+    "greeting": "Hello! How can I help you today?",
+    "goodbye": "Goodbye! Have a great day.",
+    "thanks": "You're welcome!",
+    "hours": "We're open from 9am to 5pm, Monday to Friday.",
+    "payments": "We accept credit cards, PayPal, and bank transfers."
+ }
+ def preprocess(text):
+    text = text.lower().translate(str.maketrans('', '', string.punctuation))
+    tokens = nltk.word_tokenize(text)
+    return ' '.join([lemmatizer.lemmatize(word) for word in tokens])
+ def get_response(user_input):
+    user_input = preprocess(user_input)
+    all_phrases = []
+    tags = []
+    for tag, phrases in corpus.items():
+        for phrase in phrases:
+            all_phrases.append(preprocess(phrase))
+            tags.append(tag)
+    vectorizer = TfidfVectorizer()
+    vectors = vectorizer.fit_transform(all_phrases + [user_input])
+    cosine_vals = cosine_similarity(vectors[-1], vectors[:-1])
+    index = cosine_vals.argmax()
+    intent = tags[index]
+    return responses.get(intent, "Sorry, I didn't understand that.")
+ # Example interaction loop
+ print("Customer Support Bot is running. Type 'quit' to exit.")
+ while True:
+    user_input = input("You: ")
+    if user_input.lower() == "quit":
+        print("Bot: Goodbye!")
+        break
+    print("Bot:", get_response(user_input)
+))
